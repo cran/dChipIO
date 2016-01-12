@@ -1,0 +1,31 @@
+Package: dChipIO
+================
+
+Version: 0.1.4 [2016-01-12]
+o CLEANUP: Previous version had a stray Rplots.pdf in tests/.
+
+
+Version: 0.1.3 [2016-01-12]
+o CRAN Policies: Package Title Case and proper starting of description.
+o ROBUSTNESS: Add package tests (from examples). Test coverage is %97.
+o Updated broken Affymetrix URL.
+
+
+Version: 0.1.2 [2014-06-16]
+o Fixed 'R CMD check' notes appearing in more recent versions of R.
+
+
+Version: 0.1.1 [2009-02-13]
+o CLEAN UP: readCdfBinHeader() and readDcpHeader() no longer give
+  warnings on "In rawToChar(...) : truncating string with embedded nul".
+
+
+Version: 0.1.0 [2008-08-20]
+o Added example data.
+o Added readDcpRectangle().
+o The readDcp() and readDcpHeader() was taken from the
+  aroma.affymetrix package.   The readCdfBin() and
+  readCdfBinHeader() was taken from the authors private
+  set of code.  The first versions of these functions
+  were written on January 30, 2008.
+o Package created.
