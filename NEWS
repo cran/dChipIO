@@ -1,6 +1,14 @@
 Package: dChipIO
 ================
 
+Version: 0.1.5 [2016-01-13]
+o BUG FIX: The read functions did not work on big-endian platform
+  (e.g. Solaris SPARC), because they read files using the default
+  platform endian rather than enforcing little endian.
+o CLEANUP: Removed warning on readBin() and "'signed = FALSE' is
+  only valid for integers of sizes 1 and 2".
+
+
 Version: 0.1.4 [2016-01-12]
 o CLEANUP: Previous version had a stray Rplots.pdf in tests/.
 

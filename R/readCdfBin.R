@@ -25,7 +25,7 @@
 # }
 #
 # @examples "../incl/readCdfBin.Rex"
-# 
+#
 # @author
 #
 # \seealso{
@@ -34,7 +34,7 @@
 #
 # @keyword "file"
 # @keyword "IO"
-#*/########################################################################### 
+#*/###########################################################################
 readCdfBin <- function(con, units=NULL, ...) {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Validate arguments
@@ -54,7 +54,7 @@ readCdfBin <- function(con, units=NULL, ...) {
   }
 
   if (!inherits(con, "connection")) {
-    stop("Argument 'con' must be either a connection or a pathname: ", 
+    stop("Argument 'con' must be either a connection or a pathname: ",
                                                             mode(con));
   }
 
@@ -63,6 +63,8 @@ readCdfBin <- function(con, units=NULL, ...) {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   hdr <- readCdfBinHeader(con=con);
   nbrOfUnits <- hdr$NumUnit;
+  # Sanity checks
+  stopifnot(nbrOfUnits >= 0)
 
   # Arguments 'units':
   if (is.null(units)) {
@@ -90,12 +92,12 @@ readCdfBin <- function(con, units=NULL, ...) {
 
   # Skip to the first unit to be read
   if (firstUnit > 0) {
-    seek(con=con, origin="current", where=(firstUnit-1)*CDF_UNIT_SIZE, 
+    seek(con=con, origin="current", where=(firstUnit-1)*CDF_UNIT_SIZE,
                                                             rw="read");
   }
 
   # Read first to last unit...
-  raw <- readBin(con=con, what=raw(), n=nbrOfUnitsToRead*CDF_UNIT_SIZE);
+  raw <- .readRaw(con, n=nbrOfUnitsToRead*CDF_UNIT_SIZE)
 
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -109,22 +111,25 @@ readCdfBin <- function(con, units=NULL, ...) {
   idxs <- 1:UNIT_NAME_LEN;
   unitNames <- rep("", nbrOfUnits);
   for (idx in idxs) {
-    unitNames <- paste(unitNames, 
+    unitNames <- paste(unitNames,
                    rawToChar(raw[idx,,drop=TRUE], multiple=TRUE), sep="");
   }
   raw <- raw[-idxs,,drop=FALSE];
   data$unitNames <- unitNames;
-  rm(unitNames);
+  unitNames <- NULL ## Not needed anymore
 
   # Extract 'NumProbe'
   idxs <- 1:2;
-  data$numProbes <- readBin(con=raw[idxs,,drop=FALSE], what=integer(), 
-                                       size=2, signed=FALSE, n=nbrOfUnits);
+  data$numProbes <- .readUShort(raw[idxs,,drop=FALSE], n=nbrOfUnits)
   raw <- raw[-idxs,,drop=FALSE];
+  # Sanity checks
+  stopifnot(data$numProbes >= 0)
 
-  data$CellPos <- readBin(con=raw, what=integer(), size=4, signed=FALSE, 
-                                                             n=nbrOfUnits);
-  rm(raw);
+  data$CellPos <- .readInt(raw, n=nbrOfUnits)
+  # Sanity checks
+  stopifnot(data$CellPos >= 0)
+
+  raw <- NULL ## Not needed anymore
 
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

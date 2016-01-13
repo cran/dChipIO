@@ -26,21 +26,8 @@
 #
 # @keyword "file"
 # @keyword "IO"
-#*/########################################################################### 
+#*/###########################################################################
 readDcpHeader <- function(con, ...) {
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Local functions
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  rawToString <- function(raw, ...) {
-    # This approach drops all '\0', in order to avoid warnings
-    # in rawToChar().  Note, it does not truncate the string after
-    # the first '\0'.  However, such strings should never occur in
-    # the first place.
-    raw <- raw[raw != as.raw(0)];
-    rawToChar(raw);
-  } # rawToString()
-
-
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Validate arguments
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -59,7 +46,7 @@ readDcpHeader <- function(con, ...) {
   }
 
   if (!inherits(con, "connection")) {
-    stop("Argument 'con' must be either a connection or a pathname: ", 
+    stop("Argument 'con' must be either a connection or a pathname: ",
                                                             mode(con));
   }
 
@@ -70,44 +57,47 @@ readDcpHeader <- function(con, ...) {
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   hdr <- list();
 
-  hdr$Header <- readBin(con=con, what=raw(), n=1000);
-  hdr$Format <- readBin(con=con, what=integer(), size=1, signed=FALSE, n=1);
+  hdr$Header <- .readString(con, n=1000)
+  hdr$Format <- .readByte(con, n=1)
 
   # Assert that the file format is correct/the expected on
   if (!is.element(hdr$Format, 3:4)) {
     stop("File format error: The DCP header format ('Format') is not v3 or v4: ", hdr$Format);
   }
 
-  hdr$Normalized <- readBin(con=con, what=logical(), size=1, n=1);
-  hdr$ThetaValid <- readBin(con=con, what=logical(), size=1, n=1);
+  hdr$Normalized <- as.logical(.readByte(con, n=1))
+  hdr$ThetaValid <- as.logical(.readByte(con, n=1))
 
   # Don't know why we have to add this one
-  hdr$dummy <- readBin(con=con, what=raw(), n=1);
+  hdr$dummy <- .readRaw(con, n=1)
 # print(seek(con, read="r"));
 
-  hdr$Median <- readBin(con=con, what=integer(), size=4, signed=TRUE, n=1);
-  hdr$MaxInten <- readBin(con=con, what=integer(), size=4, signed=TRUE, n=1);
-  hdr$CellDim <- readBin(con=con, what=integer(), size=4, signed=TRUE, n=1);
+  hdr$Median <- .readInt(con, n=1)
+  hdr$MaxInten <- .readInt(con, n=1)
+  hdr$CellDim <- .readInt(con, n=1)
 # print(seek(con, read="r"));
 
-  hdr$DatFile <- rawToString(readBin(con=con, what=raw(), n=1000));
+  hdr$DatFile <- .readString(con, n=1000)
 # print(seek(con, read="r"));
-  hdr$BaselineFile <- rawToString(readBin(con=con, what=raw(), n=1000));
+  hdr$BaselineFile <- .readString(con, n=1000)
 # print(seek(con, read="r"));
 
-  hdr$ArrayOutlierPct <- readBin(con=con, what=double(), size=4, signed=TRUE, n=1);
-  hdr$SingleOutlierPct <- readBin(con=con, what=double(), size=4, signed=TRUE, n=1);
-  hdr$PresencePct <- readBin(con=con, what=double(), size=4, signed=TRUE, n=1);
+  hdr$ArrayOutlierPct <- .readFloat(con, n=1)
+  hdr$SingleOutlierPct <- .readFloat(con, n=1)
+  hdr$PresencePct <- .readFloat(con, n=1)
 # print(seek(con, read="r"));
 
 
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Clean up the header
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  hdr$dummy <- NULL; 
-  hdr$Header <- paste(rawToString(hdr$Header));
-  hdr$DatFile <- paste(hdr$DatFile);
-  hdr$BaselineFile <- paste(hdr$BaselineFile);
+  hdr$dummy <- NULL;
+  hdr$Header <- hdr$Header
+  hdr$DatFile <- hdr$DatFile
+  hdr$BaselineFile <- hdr$BaselineFile
+
+  # Sanity checks
+  stopifnot(hdr$CellDim >= 0)
 
   hdr;
 } # readDcpHeader()
@@ -116,7 +106,7 @@ readDcpHeader <- function(con, ...) {
 ##############################################################################
 # HISTORY:
 # 2009-02-13
-# o Using rawToString() instead of rawToChar() to avoid warnings on
+# o Using .rawToString() instead of rawToChar() to avoid warnings on
 #   'truncating string with embedded nul:...'.
 # 2008-xx-xx
 # o Added Rdoc comments.

@@ -59,7 +59,9 @@ readDcpRectangle <- function(filename, fields=c("rawIntensities", "normalizedInt
   cells <- matrix(offsets, ncol=length(yy), nrow=length(xx), byrow=TRUE);
   # Cell indices are one-based in R
   cells <- cells + xx + 1;
-  rm(xrange, yrange, yy, xx, offsets);
+
+  ## Not needed anymore
+  xrange <- yrange <- yy <- xx <- offsets <- NULL
 
   # Read DCP data
   data <- readDcp(filename, fields=fields, cells=cells, ...);
@@ -67,7 +69,7 @@ readDcpRectangle <- function(filename, fields=c("rawIntensities", "normalizedInt
   # Rearrange each field into a matrix?
   if (asMatrix) {
     nrow <- nrow(cells);
-    rm(cells);
+    cells <- NULL   ## Not needed anymore
 
     # Dcpl-value fields
     fields <- c("rawIntensities", "normalizedIntensities");
